@@ -1,4 +1,4 @@
-import { Calendar, Home, Search, Settings, User2 } from "lucide-react";
+import { Key, Layers, User2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -15,28 +15,18 @@ import Link from "next/link";
 const items = [
   {
     title: "Clientes",
-    url: "dahsboard/clientes",
+    url: "/dahsboard/clientes",
     icon: User2,
   },
   {
-    title: "Inbox",
-    url: "#",
-    icon: Home,
+    title: "Permisos plan",
+    url: "/dahsboard/Permisos_plan",
+    icon: Key,
   },
   {
-    title: "Calendar",
-    url: "#",
-    icon: Calendar,
-  },
-  {
-    title: "Search",
-    url: "#",
-    icon: Search,
-  },
-  {
-    title: "Settings",
-    url: "#",
-    icon: Settings,
+    title: "Plan servicio",
+    url: "/dahsboard/Plan_servicio",
+    icon: Layers,
   },
 ];
 
