@@ -65,45 +65,113 @@ export function DataTable<TData, TValue>({
     },
   });
 
+  // Estado para los campos del formulario
+  const [nombre, setNombre] = React.useState("");
+  const [correo, setCorreo] = React.useState("");
+  const [telefono, setTelefono] = React.useState("");
+  const [empresa, setEmpresa] = React.useState("");
+  const [tipoPlan, setTipoPlan] = React.useState("");
+
+  const guardarUsuario = () => {
+    console.log("click booton usuario");
+    console.log("Guardando usuario:");
+    console.log({
+      nombre,
+      correo,
+      telefono,
+      empresa,
+      tipoPlan,
+    });
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between py-4">
         <Input
-          placeholder="Filter emails..."
-          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
+          placeholder="Filter nombre..."
+          value={(table.getColumn("nombre")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("email")?.setFilterValue(event.target.value)
+            table.getColumn("nombre")?.setFilterValue(event.target.value)
           }
           className="max-w-sm"
         />
         {/**BOTON DE AÑADIR NUEVO REGISTRO */}
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">Nuevo Kliente</Button>
+            <Button variant="outline">Nuevo Usuario</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Edit profile</DialogTitle>
+              <DialogTitle>Añadir Usuario</DialogTitle>
               <DialogDescription>
-                Make changes to your profile here. Click save when youre done.
+                Crea un usuario que pueda acceder al punto de venta
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Name
+                <Label htmlFor="nombre" className="text-right">
+                  Nombre
                 </Label>
-                <Input id="name" value="Pedro Duarte" className="col-span-3" />
+                <Input
+                  id="nombre"
+                  className="col-span-3"
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                />
               </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="username" className="text-right">
-                  Username
+                <Label htmlFor="correo" className="text-right">
+                  Correo
                 </Label>
-                <Input id="username" value="@peduarte" className="col-span-3" />
+                <Input
+                  id="correo"
+                  className="col-span-3"
+                  value={correo}
+                  onChange={(e) => setCorreo(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="telefono" className="text-right">
+                  Numero Telefonico
+                </Label>
+                <Input
+                  id="telefono"
+                  className="col-span-3"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="empresa" className="text-right">
+                  Nombre de la empresa
+                </Label>
+                <Input
+                  id="empresa"
+                  className="col-span-3"
+                  value={empresa}
+                  onChange={(e) => setEmpresa(e.target.value)}
+                />
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="tipoPlan" className="text-right">
+                  Tipo de plan
+                </Label>
+                <Input
+                  id="tipoPlan"
+                  className="col-span-3"
+                  value={tipoPlan}
+                  onChange={(e) => setTipoPlan(e.target.value)}
+                />
               </div>
             </div>
             <DialogFooter>
-              <Button type="submit">Save changes</Button>
+              <Button type="submit" onClick={guardarUsuario}>
+                Guardar
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

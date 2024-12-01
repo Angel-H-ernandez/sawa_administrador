@@ -1,8 +1,12 @@
 "use client";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, ArrowUpDown } from "lucide-react";
-
+import { updateUserActive } from "../../services/api/ApiClient"; // Adjust path as needed
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,20 +26,112 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 export type Users = {
   id: string;
-  name: string;
+  nombre: string;
+  fecha_inscripcion: Date;
   fecha_inicio_contrato: Date;
   fecha_final_contrato: Date;
   activo: boolean;
+  id_plan_servicio: number;
   nombre_empresa: string;
   correo: string;
   telefono: number;
-  id_sucursal_dafault: number; //ESTA MAL ESCRITO EL NOMBRE
 };
+
+// Componente para el diálogo de edición
+const EditDialog = ({
+  isOpen,
+  onClose,
+  user,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  user: Users;
+}) => {
+  return (
+    <AlertDialog open={isOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Editar Usuario</AlertDialogTitle>
+          <AlertDialogDescription>
+            Edita la información del usuario {user.nombre}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {/* Aquí puedes agregar tus campos de formulario */}
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onClose}>Guardar</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+// Componente para el diálogo de cambio de plan
+const ChangePlanDialog = ({
+  isOpen,
+  onClose,
+  user,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  user: Users;
+}) => {
+  return (
+    <AlertDialog open={isOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Cambiar Plan</AlertDialogTitle>
+          <AlertDialogDescription>
+            Selecciona el nuevo plan para {user.nombre}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        {/* Aquí puedes agregar el selector de planes */}
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={onClose}>Cancelar</AlertDialogCancel>
+          <AlertDialogAction onClick={onClose}>Cambiar Plan</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+};
+
+export function AlertDestructive() {
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error</AlertTitle>
+      <AlertDescription>
+        Your session has expired. Please log in again.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+/*async function activarUsuario(idUser: string) {
+  try {
+    await updateUserActive(idUser, true);
+    setActiveDialog(null);
+    toast({
+      title: "Usuario Activado",
+      description: "El usuario ha sido activado exitosamente",
+      variant: "default",
+    });
+  } catch (error) {
+    console.error("Error al activar usuario:", error);
+    toast({
+      title: "Error",
+      description: "No se pudo activar el usuario",
+      variant: "destructive",
+    });
+    // Optional: Add error notification
+  }
+}*/
 
 export const columns: ColumnDef<Users>[] = [
   {
@@ -43,7 +139,7 @@ export const columns: ColumnDef<Users>[] = [
     header: "ID",
   },
   {
-    accessorKey: "name",
+    accessorKey: "nombre",
     header: ({ column }) => {
       // para buscar en ella
 
@@ -52,18 +148,22 @@ export const columns: ColumnDef<Users>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Nombre
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "fecha_inicio_contrato",
+    accessorKey: "fechaInscripcion",
+    header: "fecha inscrito",
+  },
+  {
+    accessorKey: "fechaInicioContrato",
     header: "Inicio de contrato",
   },
   {
-    accessorKey: "fecha_final_contrato",
+    accessorKey: "fechaFinalContrato",
     header: "Final de contrato",
   },
   {
@@ -71,7 +171,7 @@ export const columns: ColumnDef<Users>[] = [
     header: "Activo",
   },
   {
-    accessorKey: "nombre_empresa",
+    accessorKey: "nombreEmpresa",
     header: "Empresa",
   },
   {
@@ -83,17 +183,44 @@ export const columns: ColumnDef<Users>[] = [
     header: "Telefono",
   },
   {
-    accessorKey: "id_sucursal_dafault",
-    header: "Sucursal Default",
+    accessorKey: "idPlanServicio",
+    header: "Plan",
   },
 
   {
     id: "actions",
     cell: ({ row }) => {
       const user = row.original;
+      const [activeDialog, setActiveDialog] = useState<
+        "edit" | "activate" | "deactivate" | "changePlan" | null
+      >(null);
+      const { toast } = useToast();
+
+      const cambiarEstadoUsuario = async (
+        idUser: string,
+        activo: boolean,
+        title: string,
+        description: string,
+      ) => {
+        try {
+          await updateUserActive(idUser, activo);
+          setActiveDialog(null);
+          toast({
+            title: title,
+            description: description,
+            variant: "success",
+          });
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "Ha ocurrido un error en la operacion",
+            variant: "destructive",
+          });
+        }
+      };
 
       return (
-        <AlertDialog>
+        <>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -103,52 +230,99 @@ export const columns: ColumnDef<Users>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() =>
-                  // navigator.clipboard.writeText(user.id)
-                  console.log("editar")
-                }
-              >
+              <DropdownMenuItem onClick={() => setActiveDialog("edit")}>
                 Editar
               </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  // navigator.clipboard.writeText(user.id)
-                  console.log("sacvtivar")
-                }
-              >
+              <DropdownMenuItem onClick={() => setActiveDialog("activate")}>
                 Activar
               </DropdownMenuItem>
-
-              <AlertDialogTrigger asChild>
-                <DropdownMenuItem>Desactivar</DropdownMenuItem>
-              </AlertDialogTrigger>
-
-              <DropdownMenuItem
-                onClick={() =>
-                  // navigator.clipboard.writeText(user.id)
-                  console.log("cambiar plan")
-                }
-              >
+              <DropdownMenuItem onClick={() => setActiveDialog("deactivate")}>
+                Desactivar
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveDialog("changePlan")}>
                 Cambiar plan
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction>Continue</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+          {/* Diálogo de Edición */}
+          <EditDialog
+            isOpen={activeDialog === "edit"}
+            onClose={() => setActiveDialog(null)}
+            user={user}
+          />
+
+          {/* Diálogo de Activación */}
+          <AlertDialog open={activeDialog === "activate"}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  ¿Deseas activar este usuario?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esto permitirá que el usuario acceda nuevamente al punto de
+                  venta
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setActiveDialog(null)}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() =>
+                    cambiarEstadoUsuario(
+                      user.id,
+                      true,
+                      "Usuario Activado",
+                      "El usuario ahora podra acceder al punto de venta nuevamente",
+                    )
+                  }
+                >
+                  Activar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Diálogo de Desactivación */}
+          <AlertDialog open={activeDialog === "deactivate"}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  ¿Deseas desactivar este usuario?
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  Esto bloqueará el acceso del usuario al punto de venta, puede
+                  revertir la acción activando al usuario nuevamente
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel onClick={() => setActiveDialog(null)}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() =>
+                    cambiarEstadoUsuario(
+                      user.id,
+                      false,
+                      "Usuario Desactivado",
+                      "El usuario ahora no podra acceder al punto de venta",
+                    )
+                  }
+                >
+                  Desactivar
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          {/* Diálogo de Cambio de Plan */}
+          <ChangePlanDialog
+            isOpen={activeDialog === "changePlan"}
+            onClose={() => setActiveDialog(null)}
+            user={user}
+          />
+        </>
       );
     },
   },

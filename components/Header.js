@@ -10,7 +10,7 @@ export function Header() {
   function getPageTitle() {
     switch (pathname) {
       case "/dahsboard/clientes":
-        return "Clientes";
+        return "Usuarios";
       case "/dahsboard/Permisos_plan":
         return "Permisos plan";
       case "/dahsboard/Plan_servicio":
@@ -23,7 +23,7 @@ export function Header() {
   return (
     <header className="text-black py-4 px-6">
       <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{getPageTitle()}</h1>
+        <h1 className="text-2xl font-bold text-green-500">{getPageTitle()}</h1>
         {/* Other header elements */}
       </div>
     </header>
